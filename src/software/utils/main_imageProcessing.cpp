@@ -448,7 +448,7 @@ int aliceVision_main(int argc, char * argv[])
     }
 
 #if !ALICEVISION_IS_DEFINED(ALICEVISION_HAVE_OPENCV)
-    if(pParams.bilateralFilterEnabled || pParams.claheEnabled)
+    if(pParams.bilateralFilter.enabled || pParams.claheFilter.enabled)
     {
         ALICEVISION_LOG_ERROR("Invalid option: BilateralFilter and claheFilter can't be used without openCV !");
         return EXIT_FAILURE;
