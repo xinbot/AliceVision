@@ -75,6 +75,51 @@ public:
         VertexIndex localVertexIndex = GEO::NO_VERTEX;
     };
 
+    struct Edge
+    {
+        Edge() = default;
+        Edge(VertexIndex v0_, VertexIndex v1_)
+            : v0{v0_}
+            , v1{v1_}
+        {}
+
+        VertexIndex v0 = GEO::NO_VERTEX;
+        VertexIndex v1 = GEO::NO_VERTEX;
+    };
+
+    enum class EGeometryType
+    {
+        Vertex,
+        Edge,
+        Facet,
+        None
+    };
+
+    struct GeometryIntersection
+    {
+        union
+        {
+            Facet facet;
+            VertexIndex vertex;
+            Edge edge;
+        };
+        GeometryIntersection() {}
+        GeometryIntersection(const Facet& f)
+            : facet{f}
+            , type{EGeometryType::Facet}
+        {}
+        GeometryIntersection(const VertexIndex& v)
+            : vertex{v}
+            , type{EGeometryType::Vertex}
+        {}
+        GeometryIntersection(const Edge& e)
+            : edge{e}
+            , type{EGeometryType::Edge}
+        {}
+
+        EGeometryType type = EGeometryType::None;
+    };
+
     mvsUtils::MultiViewParams* mp;
 
     GEO::Delaunay_var _tetrahedralization;
@@ -361,6 +406,9 @@ public:
     void leaveLargestFullSegmentOnly();
 
     mesh::Mesh* createMesh(bool filterHelperPointsTriangles = true);
+
+    GeometryIntersection lineIntersectTriangle(const Point3d& originPt, const Point3d& DirVec, const Facet& facet,
+                                               Point3d& intersectPt, const float epsilon);
 };
 
 } // namespace fuseCut

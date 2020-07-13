@@ -2891,5 +2891,47 @@ void DelaunayGraphCut::leaveLargestFullSegmentOnly()
     ALICEVISION_LOG_DEBUG("Largest full segment only done.");
 }
 
+DelaunayGraphCut::GeometryIntersection DelaunayGraphCut::lineIntersectTriangle(const Point3d& originPt, const Point3d& DirVec, const Facet& facet, Point3d& intersectPt, const float epsilon)
+{
+    const VertexIndex AvertexIndex = getVertexIndex(facet, 0);
+    const VertexIndex BvertexIndex = getVertexIndex(facet, 1);
+    const VertexIndex CvertexIndex = getVertexIndex(facet, 2);
+    
+    // const std::array<const Point3d*, 3> facetPoints = getFacetsPoints(facet);
+    const Point3d* A = &_verticesCoords[AvertexIndex];
+    const Point3d* B = &_verticesCoords[BvertexIndex];
+    const Point3d* C = &_verticesCoords[CvertexIndex];
+
+    const Point2d triangleUv = getLineTriangleIntersectBarycCoords(&intersectPt, A, B, C, &originPt, &DirVec);
+    const float u = triangleUv.x; // A to C
+    const float v = triangleUv.y; // A to B
+
+    if(v > -epsilon && v < epsilon) // along A C edge
+    {
+        if(u > -epsilon && u < epsilon)
+            return GeometryIntersection(AvertexIndex); // vertex A
+        if(u > 1-epsilon && u < 1 + epsilon)
+            return GeometryIntersection(CvertexIndex); // vertex C
+
+        return GeometryIntersection(Edge(AvertexIndex, CvertexIndex)); // edge AC
+    }
+
+    if(u > -epsilon && u < epsilon) // along A B edge
+    {
+        if(v > 1 - epsilon && v < 1 + epsilon)
+            return GeometryIntersection(BvertexIndex); // vertex B
+
+        return GeometryIntersection(Edge(AvertexIndex, BvertexIndex)); // edge AB
+    }
+
+    if(u + v > 1 - epsilon && u + v < 1 + epsilon)
+        return GeometryIntersection(Edge(BvertexIndex, CvertexIndex)); // edge BC
+
+    if(u + v < 1.0f - epsilon)
+        return GeometryIntersection(facet);
+
+    return GeometryIntersection(); // Return none
+}
+
 } // namespace fuseCut
 } // namespace aliceVision
